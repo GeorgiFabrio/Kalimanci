@@ -1,0 +1,196 @@
+# December 2021 Past Paper
+#------------------------------------------------------------------------------
+#                                 Q1 
+print('\n------ Q1. a)------\n')
+#fins the 2 smallest roots of w (real and imaginary) 
+import numpy as np
+
+def find_roots(coefficients):
+    # Find roots using NumPy's roots function
+    roots = np.roots(coefficients)
+    
+    # Separate real and complex roots
+    real_roots = roots[np.isreal(roots)].real
+    complex_roots = roots[np.iscomplex(roots)].real
+    complex_roots_imag = roots[np.iscomplex(roots)].imag
+    
+    # Print the polynomial equation
+    print("Polynomial Equation:")
+    equation_str = " + ".join([f"{coeff}x^{power}" if power > 0 else f"{coeff}" for power, coeff in enumerate(coefficients[::-1]) if coeff != 0])
+    print(f"P(x) = {equation_str}\n")
+    
+    # Print the roots
+    print("Roots:")
+    for i, root in enumerate(real_roots):
+        print(f"{i + 1}st Root: {root}")
+    
+    for i, (real, imag) in enumerate(zip(complex_roots, complex_roots_imag)):
+        print(f"{i + 1}st Root: {real} + {imag}i")
+        print(f"{i + 2}nd Root: {real} - {imag}i")
+        # Incrementing i by 1 again to skip the next iteration
+        i += 1
+
+# Example usage:
+# Define coefficients of the polynomial in descending order of power of x 
+s = 1500
+c = 12
+coefficients = [1, 2*c, 3*s,  s*c, s**2] 
+
+find_roots(coefficients)
+
+
+print('\n------ Q1. b)------\n')
+#calc the smallest possible ammount of work using the previous results
+
+w_i = 24.0302414149468
+w_r = 0.623019628307849
+t = 10
+A = 0.1
+gamma = np.pi/8
+
+x = A*np.exp(w_r*t)*np.cos(w_i*t+gamma)
+print ('displacement: ', x)
+
+#fidn the force
+T = 1000
+f = -x * T
+print ('force:', f)
+
+
+#------------------------------------------------------------------------------
+#                                 Q2 
+print('\n------ Q2. a)------\n')
+#find the 2 lowest values of f which satisfy the equation provided
+import math
+import numpy as np
+
+def secant(f, a, b, N):
+    
+    if f(a) * f(b) >= 0:
+        print("Secant method fails.")
+        return None
+    a_n = a
+    b_n = b
+    
+    for n in range(1, N + 1):
+        m_n = a_n - f(a_n) * (b_n - a_n) / (f(b_n) - f(a_n))
+        f_m_n = f(m_n)
+        
+        if f(a_n) * f_m_n < 0:
+            a_n = a_n
+            b_n = m_n
+        elif f(b_n) * f_m_n < 0:
+            a_n = m_n
+            b_n = b_n
+        elif f_m_n == 0:
+            print("Found exact solution.")
+            return m_n
+        else:
+            print("Secant method fails.")
+            return None
+
+    return a_n - f(a_n) * (b_n - a_n) / (f(b_n) - f(a_n))
+
+# Define the function f(x) CHANGE
+f = lambda x: np.cosh(x) * np.cos(x) + 1
+
+# Find and print the solution using the Secant method CHANGE
+solution1 = secant(f, 1, 2, 1000)
+print('the first root of B is:', solution1)
+
+solution2 = secant(f, 4, 5, 1000)
+print('the second root of B is:', solution2)
+
+m = 7850  #DENSITY 
+L = 0.9
+E = 200 * (10**9)
+I = 3.255 * (10**-11)
+B1 = solution1
+B2 = solution2
+
+f1 = ((((solution1**4) * E * I) / (m * (L**3)))**0.5) / (2 * np.pi)
+f2 = ((((solution2**4) * E * I) / (m * (L**3)))**0.5) / (2 * np.pi)
+print ('1st solution: ', f1)
+print ('2nd solution: ', f2)
+
+#------------------------------------------------------------------------------
+#                                 Q3 
+print('\n------ Q3------\n')
+#fix the code provided, name the algorithm used, find the root of a cuadratic and find true error
+
+MAX_ITER = 100
+
+def func(x):
+    return (x**2 + 5*x - 4)  # Corrected the function syntax
+
+def Code(a, b):
+    if func(a) * func(b) >= 0:
+        print("You have not assumed correct values of a and b")
+        return 0
+    c = a
+
+    for i in range(1, MAX_ITER + 1):  # Changed the range to start from 1
+
+        c = (a * func(b) - b * func(a)) / (func(b) - func(a))
+
+        if func(c) == 0:
+            break
+
+        elif func(c) * func(a) < 0:
+            b = c
+        else:
+            a = c
+    print("The value of the root using FPM is: {:.4f}".format(c))
+    print("Number of iterations:", i)
+
+
+Code(0, 10)
+
+FPM =  0.7016
+sol = (-5 + np.sqrt(41))/2
+error = (sol - FPM)/sol *-100
+print ('percentage error', error)
+
+#------------------------------------------------------------------------------
+#                                 Q4 
+print('\n------ Q4 ------\n')
+# solve an ODE with euler and get solutions at 2pi and 4pi
+# using the exact sol, compute the max ture error in each time range and the diff
+# Function that returns dy/dx
+def model(y, x):
+    dydx = -10 * y + (1 - 10) * np.cos(x) - (1 + 10) * np.sin(x)
+    return dydx
+
+# Exact solution
+def exact_solution(x):
+    return np.sin(x) + np.cos(x)
+
+# Inputs
+x0 = 0
+y0 = 1
+x_final = 4 * np.pi
+
+h_values = np.array([0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3])
+
+# Print table header
+print("| Step h | Error at t = 2π | Error at t = 4π |")
+
+for hh in range(len(h_values)):
+    h = h_values[hh]
+    n_step = math.ceil(x_final / h)
+
+    # Euler method
+    x_eul = np.linspace(x0, x_final, n_step + 1)
+    y_eul = np.zeros(n_step + 1)
+    y_eul[0] = y0
+
+    for i in range(n_step):
+        slope = model(y_eul[i], x_eul[i])
+        y_eul[i + 1] = y_eul[i] + h * slope
+
+    # Compute error at t = 2π and t = 4π using the exact solution
+    error_at_2pi = np.abs(y_eul[int(2 * np.pi / h)] - exact_solution(2 * np.pi))
+    error_at_4pi = np.abs(y_eul[-1] - exact_solution(4 * np.pi))
+
+    # Print table row
+    print(f"| {h:.3f}   | {error_at_2pi:.6e}  | {error_at_4pi:.6e} |")
