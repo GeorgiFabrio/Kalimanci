@@ -1,0 +1,23 @@
+  
+
+Import math 
+
+ 
+
+Import random  
+
+ 
+
+Import numpy as np  
+
+ 
+
+import matplotlib.pyplot as plt 
+
+ 
+
+import sympy as sym (used for math stuff, in the course used for finding derivatives in Week 10) 
+
+ 
+
+Scipy – optimize, minimize, maximize,  
