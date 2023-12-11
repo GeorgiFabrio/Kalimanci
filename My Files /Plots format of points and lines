@@ -1,0 +1,35 @@
+Color Codes: 
+
+'b': Blue 
+
+'g': Green 
+
+'r': Red 
+
+'c': Cyan 
+
+'m': Magenta 
+
+'y': Yellow 
+
+'k': Black 
+
+'w': White 
+
+Line Style Codes: 
+
+'-': Solid line (default) 
+
+'--': Dashed line 
+
+':': Dotted line 
+
+'-.': Dash-dot line 
+
+You can combine a color code and a line style code to specify the appearance of a line in a plot. For example: 
+
+'r-': Solid red line 
+
+'g--': Dashed green line 
+
+'y:.': Dotted yellow line with dots 
