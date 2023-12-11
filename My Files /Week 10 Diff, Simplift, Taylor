@@ -1,0 +1,45 @@
+import sympy as sym
+from sympy import symbols, simplify, series
+
+# Define symbols
+x = symbols('x')
+
+# Define expression
+expression = 1 / (1 - x)
+
+
+# define some symbols
+x = sym.Symbol('x')
+y = sym.Symbol('y')
+a = sym.Symbol('a')
+c = sym.Symbol('c')
+dydx = sym.Symbol('dydx')
+d2ydx2 = sym.Symbol ('d2ydx2')
+
+z = sym.Symbol('z')
+s = sym.Symbol('s')
+
+# define the function y(x)
+y=c*sym.sin(a*x)
+
+# compute derivative
+dydx = sym.diff(y, x)
+d2ydx2 = sym.diff(dydx, x)
+
+# define the function z(x), s(x) (NB: define it bellow dydx and d2ydx2)
+z=dydx + d2ydx2
+s=(1/y)*dydx
+
+simplified_s = simplify(s)
+taylor_series_s = series(s, x, 0, 6)
+
+
+
+# print them 
+print('function y(x):     ',y)
+print('derivative dy/dx:  ',dydx)
+print('derivative d2y/dx2: ', d2ydx2)
+print('function z(x): ', z)
+print('function s(x): ', s)
+print('simplified s(x): ', simplified_s)
+print('Taylor series of s(x): ', taylor_series_s)
