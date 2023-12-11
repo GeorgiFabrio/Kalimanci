@@ -1,0 +1,415 @@
+# December 2022 Past Paper
+#------------------------------------------------------------------------------
+#                                 Q1 COMPLETED
+print('\n------ Q1. a)------\n')
+# evalueate the truncated series with a specified number of terms and find the approximation
+import numpy as np
+
+def calculate_pi_approximation(terms):
+    s = 0
+    pi_n = np.zeros(terms)
+    nn = np.zeros(terms)
+    error_true = np.zeros(terms)
+    error_ext = np.zeros(terms)
+
+    for i in range(1, terms + 1):
+        pi_old = (s * 6.0) ** 0.5
+        s = s + 1.0 / i**2.0
+        pi_n[i - 1] = (s * 6.0) ** 0.5
+        nn[i - 1] = i 
+        error_true[i - 1] = np.absolute(pi_n[i - 1] - np.pi)
+        error_ext[i - 1]  = np.absolute(pi_n[i - 1] - pi_old)
+
+    return pi_n, nn, error_true, error_ext
+
+# a) Evaluate the truncated series with specified terms
+terms_list = [10, 100, 1000]
+for terms in terms_list:
+    pi_n, nn, error_true, error_ext = calculate_pi_approximation(terms)
+    print(f"\nApproximation of π with {terms} terms: {pi_n[-1]}")
+
+print('\n------ Q1. b)------\n')
+# b) Compute and report errors for different numbers of terms
+for terms in terms_list:
+    pi_n, nn, error_true, error_ext = calculate_pi_approximation(terms)
+    print(f"\nNumber of terms: {terms}")
+    print(f"True Error: {error_true[-1]}")
+    print(f"Estimated Error: {error_ext[-1]}")
+#------------------------------------------------------------------------------
+#                                   Q2
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+print('\n------ Q2. a)------\n')
+#solve the ODE using Euler and report the value of the solutions at various intervals
+
+#define the ODE
+def model(y, t, k):
+    dydt = 10*(y**2) - y**3
+    return dydt
+
+
+def solve_ode(model, t0, y0, t_final, h, method='euler', params=None, plot=True, save_results=False):
+    """
+    Solve a first-order ordinary differential equation numerically.
+
+    Parameters:
+    - model: Function defining the ODE.
+    - t0, y0: Initial conditions.
+    - t_final: Total solution interval.
+    - h: Step size for the integration method.
+    - method: Integration method ('euler' or 'runge_kutta').
+    - params: Additional parameters for the ODE model.
+    - plot: Whether to plot the results.
+    - save_results: Whether to save the results in a file.
+
+    Returns:
+    - t_eul, y_eul: Arrays storing the numerical solution.
+    - t_exact, y_exact: Arrays storing the exact solution.
+    """
+    n_step = math.ceil(t_final / h)
+
+    # Arrays to store the solution
+    y_eul = np.zeros(n_step + 1)
+    t_eul = np.zeros(n_step + 1)
+
+    # Initialize the solution arrays with the initial condition, x0 and y0 given in call
+    y_eul[0] = y0
+    t_eul[0] = t0
+
+    # Populate the x array based on the step size
+    for i in range(n_step):
+        t_eul[i + 1] = t_eul[i] + h
+
+    # Apply the selected integration method
+    for i in range(n_step):
+        if method == 'euler':
+            slope = model(y_eul[i], t_eul[i], params)
+            y_eul[i + 1] = y_eul[i] + h * slope
+ 
+
+    # Plot the approximate solutions
+    if plot:
+        plot_solution(t_eul, y_eul, method)
+
+    return t_eul, y_eul
+
+#plot for better understanding of the function behaviour
+def plot_solution(t_eul, y_eul, method):
+    plt.plot(t_eul, y_eul, 'b.-', label=f'Approximate Solution ({method.capitalize()} Method)')
+    plt.xlabel('t')
+    plt.ylabel('y(t)')
+    plt.legend()
+    plt.show()
+
+# a) Solve Equation Q2.1 with the Euler method and report the values
+t_values = [4, 5, 10]
+initial_condition = 0.02
+h = 0.02  # Adjust the step size as needed
+
+#loop for the different t values
+for t in t_values:
+    t_eul, y_eul = solve_ode(model, 0, initial_condition, t, h, 'euler', None, True, False)
+    print(f"\nSolution at t = {t}: {y_eul[-1]}")
+
+
+print('\n------ Q2. b)------\n')
+# b) Compute and report the ignition delay for different initial conditions
+initial_conditions = [0.02, 0.01, 0.005]
+ignition_delays = []
+
+# Iterate through different initial conditions
+for initial_condition in initial_conditions:
+    # Solve the ordinary differential equation (ODE) using Euler method
+    t_eul, y_eul = solve_ode(model, 0, initial_condition, 10, h, 'euler', None, False, False)
+    
+    # Find the index where the derivative is maximum
+    index_max_derivative = np.argmax(np.diff(y_eul))
+    
+    # Check for a significant increase in the function value
+    threshold_increase = 0.1  # Adjust as needed
+    index_sudden_increase = np.argmax(y_eul[index_max_derivative:] > y_eul[index_max_derivative] + threshold_increase)
+    
+    # Combine indices to get the overall index
+    overall_index = index_max_derivative + index_sudden_increase
+    
+    # Calculate ignition delay using the time at the overall index
+    ignition_delay = t_eul[overall_index]
+    
+    # Store the calculated ignition delay in a list
+    ignition_delays.append(ignition_delay)
+
+
+for i in range(len(initial_conditions)):
+    print(f"\nIgnition Delay for initial condition {initial_conditions[i]}: {ignition_delays[i]}")
+
+print('\n------ Q2. c)------\n')
+# c) Stability analysis for different step sizes
+initial_condition = 0.02
+max_h = 0.03  # Set a maximum step size to experiment with
+num_steps = 100
+threshold_stability = 0.1 # Adjust as needed
+
+# Arrays to store the results
+h_values = np.linspace(0.001, max_h, num_steps)
+stability_results = []
+
+for h in h_values:
+    t_eul, y_eul = solve_ode(model, 0, initial_condition, 10, h, 'euler', None, False, False)
+    
+    # Check stability by observing the maximum value of the solution
+    stability_check = np.max(np.abs(y_eul))
+    
+    stability_results.append(stability_check)
+
+# Convert the stability_results list to a NumPy array
+stability_results = np.array(stability_results)
+
+# Plot the stability analysis
+plt.plot(h_values, stability_results, 'b.-')
+plt.title('Stability Analysis for Euler Method')
+plt.xlabel('Step Size (h)')
+plt.ylabel('Maximum Solution Value')
+
+plt.xlim(0.01, 0.02)  # Adjust the limits as needed
+
+plt.show()
+
+# Find the threshold value for stability
+threshold_index = np.argmax(stability_results > threshold_stability)
+threshold_h = h_values[threshold_index]
+
+print(f"\nThreshold value for h above which the Euler method becomes unstable: {threshold_h}")
+
+#d)
+'''
+Stability in Numerical Methods for ODEs:
+Stability in numerical methods for solving ordinary differential equations (ODEs) refers to the ability of the method to produce accurate results without excessive growth of errors as the step size (hh) changes.
+
+Explicit Euler Method:
+Computes the next step based solely on the current step.
+Conditionally stable; careful selection of hh is required to prevent instability.
+Prone to instability for large step sizes.
+
+Implicit Euler Method:
+Involves solving an equation at each step, considering the future step.
+Generally unconditionally stable; can handle larger step sizes without instability issues.
+Step Size Selection:
+
+Explicit Euler: hh must be chosen carefully based on stability criteria, often related to the maximum eigenvalue of the Jacobian matrix.
+Implicit Euler: More forgiving regarding hh selection, allowing for larger steps without compromising stability.
+
+In summary, stability considerations play a crucial role in choosing the step size (hh), with explicit methods requiring careful selection to avoid instability, while implicit methods offer more stability flexibility.
+''' 
+
+#------------------------------------------------------------------------------
+#                                       Q3
+
+print('\n------ Q3. a)------\n')
+# use root finding to determine any value of x in the domain
+import numpy as np
+
+#part a) find where f(x) = x
+def inverse_quadratic_interpolation(f, x0, x1, x2, N=1000, tolerance=1e-3):
+    steps_taken = 0
+    while steps_taken < N and abs(x1 - x0) > tolerance:  # last guess and new guess are very close
+        fx0 = f(x0)
+        fx1 = f(x1)
+        fx2 = f(x2)
+        L0 = (x0 * fx1 * fx2) / ((fx0 - fx1) * (fx0 - fx2))
+        L1 = (x1 * fx0 * fx2) / ((fx1 - fx0) * (fx1 - fx2))
+        L2 = (x2 * fx1 * fx0) / ((fx2 - fx0) * (fx2 - fx1))
+        new = L0 + L1 + L2
+        x0, x1, x2 = new, x0, x1
+        steps_taken += 1
+    return x0, steps_taken
+
+# Define the function f(x) = 0 so we can use root finding
+f = lambda x: (1/np.sin(x)) + (1/4) - x
+
+# Set the initial guesses
+x0, x1, x2 = 1, 2, 3
+
+# Find the root using Inverse Quadratic Interpolation
+roots_inv_quad, steps = inverse_quadratic_interpolation(f, x0, x1, x2)
+print("Approximate root using Inverse Quadriatic Interpolation:", roots_inv_quad)
+print("Number of steps needed:", steps)
+
+print('\n------ Q3. b)------\n')
+#part b) find the roots by making f(x) = 0 
+def bisection(f, a, b, N):
+
+    if f(a) * f(b) >= 0:
+        print("Initial values 'a' and 'b' must have opposite signs.")
+        return None
+
+    a_n = a
+    b_n = b
+
+    for n in range(1, N + 1):
+        m_n = (a_n + b_n) / 2
+        f_m_n = f(m_n)
+
+        if f(a_n) * f_m_n < 0:
+            a_n = a_n
+            b_n = m_n
+        elif f(b_n) * f_m_n < 0:
+            a_n = m_n
+            b_n = b_n
+        elif f_m_n == 0:
+            print("Found exact solution.")
+            return m_n
+        else:
+            print("Bisection method fails.")
+            return None
+
+    return (a_n + b_n) / 2
+
+
+f = lambda x: ( 1/np.sin(x) ) + (1/4) - x
+
+# Attempt to find the root using the bisection method
+roots_bis = bisection(f, 0.1, 4, 1000)
+print("Approximate root using bisection:", roots_bis)
+
+
+print('\n------ Q3. c)------\n')
+#use open root finding technique
+import numpy as np
+
+def secant(f, a, b, N):
+ 
+    if f(a) * f(b) >= 0:
+        print("Secant method fails.")
+        return None
+    a_n = a
+    b_n = b
+    
+    for n in range(1, N + 1):
+        m_n = a_n - f(a_n) * (b_n - a_n) / (f(b_n) - f(a_n))
+        f_m_n = f(m_n)
+        
+        if f(a_n) * f_m_n < 0:
+            a_n = a_n
+            b_n = m_n
+        elif f(b_n) * f_m_n < 0:
+            a_n = m_n
+            b_n = b_n
+        elif f_m_n == 0:
+            print("Found exact solution.")
+            return m_n
+        else:
+            print("Secant method fails.")
+            return None
+
+    return a_n - f(a_n) * (b_n - a_n) / (f(b_n) - f(a_n))
+
+# Define the function f(x) CHANGE
+f = lambda x: ( 1/np.sin(x) ) + (1/4) - x
+
+# Find and print the solution using the Secant method CHANGE
+roots_sec = secant(f, 0.1, 4, 1000)
+print('Approximate root using secant: ', roots_sec)
+
+
+
+print('\n------ Q3. d)------\n')
+# Create a table with coefficients and rounded values
+import pandas as pd
+
+# Assume roots_inv_quad, roots_bis, and roots_sec are your root values
+# Use repr() to convert the values to strings with higher precision
+
+roots_inv_quad_str = repr(roots_inv_quad)
+roots_bis_str = repr(roots_bis)
+roots_sec_str = repr(roots_sec)
+
+data = {
+    'Method': ['Inverse Quadratic', 'Bisection', 'Secant', 'Max Iterations'],
+    'Root': [roots_inv_quad_str, roots_bis_str, roots_sec_str, 1000]
+}
+
+# Set the display precision for pandas
+pd.set_option('display.precision', 14)
+
+# Display the data in a table
+df = pd.DataFrame(data)
+print(df)
+
+#------------------------------------------------------------------------------
+#                                        Q4
+print('\n------ Q4. a)------\n')
+#show that x is the general solution to s
+import sympy as sym
+
+# Define some symbols
+x = sym.Symbol('x')
+t = sym.Symbol('t')
+m = sym.Symbol('m')
+k = sym.Symbol('k')
+A = sym.Symbol('A')
+b = sym.Symbol('b')
+w = sym.Symbol('w')
+w_0 = sym.Symbol('w_0')
+gamma = sym.Symbol('g')
+
+# Define the functions 
+x = A * sym.exp(-(b*t)/(2*m)) * sym.cos(w * t + gamma)
+
+# Calculate the derivatives
+dxdt = sym.diff(x, t)
+
+d2xd2t = sym.diff(dxdt, t)
+
+# Define the function s(x)
+s = m * d2xd2t + b * dxdt + k * x
+
+#simplify the function
+s_simp = s.simplify()
+print('s(x) simplified:  ', s_simp)
+
+
+print('\n------ Q4. b)------\n')
+#find the eq of ins freq and compare it to given eq
+quad = sym.Eq((-b**2 + 4*k*m - 4*m**2*w**2), 0)
+inst_freq = sym.solve(quad, w)
+print ('w is:', inst_freq)
+
+
+print('\n------ Q4. c)------\n')
+# calculate the time taken for a pendulum mass to reach an amplitude of 1% the intial value
+import numpy as np
+import scipy.optimize as opt
+
+# Substitute values into the expression
+Amp = 0.05 * 0.01
+expr = x.subs({A: 0.05, m: 1, b: 0.1, w: sym.sqrt(5**2 - (0.1/(2*1))**2), gamma: 0}) - Amp
+
+# Convert the symbolic expression to a numerical function
+f_numeric = sym.lambdify(t, expr, 'numpy')
+
+# Initial guess for the root 
+initial_guess = 0.1
+
+# Use fsolve to find the 1st root numerically therefore the zero
+root = opt.fsolve(f_numeric, initial_guess)[0]
+
+print('First positive real solution for time (t):', root)
+
+print('\n------ Q4. d)------\n')
+#find the damping coefficient required to half the time obtained in the part before
+
+# Substitute values into the expression this time t/2 and b is unknown
+expr_2 = x.subs({A: 0.05, m: 1, t: root/2, w: sym.sqrt(5**2 - (0.1/(2*1))**2), gamma: 0}) - Amp
+
+# Convert the symbolic expression to a numerical function
+f_numeric2 = sym.lambdify(b, expr_2, 'numpy')
+
+# Initial guess for the root 
+initial_guess = 0.01
+
+# Use fsolve to find the 1st root numerically therefore the zero
+root_2 = opt.fsolve(f_numeric2, initial_guess)[0]
+
+print('dumping coefficient b:', root_2)
